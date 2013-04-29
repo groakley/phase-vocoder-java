@@ -1,6 +1,12 @@
 *.class
 
-# Package Files #
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
+.settings/
+.project
 *.jar
 *.war
 *.ear
