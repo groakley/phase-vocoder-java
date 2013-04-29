@@ -10,7 +10,7 @@ public class Main {
      */
     public static void main (String[] args) {
         ByteOperator op = new PassThroughOperator();
-        WavPlayer pv = new WavPlayer("src/demoFiles/coldplay.wav", op);
+        WavPlayer pv = new WavPlayer("res/sample_music/coldplay.wav", op);
         pv.start();
     }
 
