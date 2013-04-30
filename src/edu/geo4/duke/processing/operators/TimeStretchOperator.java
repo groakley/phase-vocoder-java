@@ -1,10 +1,11 @@
 package edu.geo4.duke.processing.operators;
 
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_1D;
+import edu.geo4.duke.processing.players.ICaller;
 import edu.geo4.duke.processing.window.WindowBuilder;
 
 
-public class TimeStretchOperator implements ByteOperator {
+public class TimeStretchOperator implements ICallee {
 
     private static final int WLen = 2048;
 
@@ -23,9 +24,15 @@ public class TimeStretchOperator implements ByteOperator {
     }
 
     @Override
-    public byte[] process (byte[] data) {
+    public void run () {
         // TODO Auto-generated method stub
-        return null;
+        
+    }
+
+    @Override
+    public void answer (ICaller caller, int jobID, byte[] data) {
+        // TODO Auto-generated method stub
+        
     }
     
     private static void fftShift (byte[] data) {
@@ -65,6 +72,19 @@ public class TimeStretchOperator implements ByteOperator {
     
     public float getStretchFactor () {
         return (float) n2 / (float) n1;
+    }
+
+
+    @Override
+    public void stop () {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public ICallee getNewInstance () {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

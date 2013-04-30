@@ -3,6 +3,9 @@ package edu.geo4.duke.processing.players;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Vector;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -10,17 +13,21 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import edu.geo4.duke.processing.operators.ByteOperator;
+import edu.geo4.duke.processing.operators.ICallee;
 
 
-public class WavPlayer extends Thread {
+public class WavPlayer extends Thread implements ICaller {
 
     File myInput;
-    ByteOperator myOperator;
+    ICallee myOperator;
+    private Vector<BlockingQueue<Byte>> outChannels;
+    private Vector<ICallee> myChannelOperators;
 
-    public WavPlayer (String filePath, ByteOperator operator) {
+    public WavPlayer (String filePath, ICallee operator) {
         myInput = new File(filePath);
         myOperator = operator;
+        outChannels = new Vector<BlockingQueue<Byte>>();
+        myChannelOperators = new Vector<ICallee>();
     }
 
     @Override
@@ -47,6 +54,24 @@ public class WavPlayer extends Thread {
             sourceDataLine.open(inputFormat);
             sourceDataLine.start();
 
+            for (int i = 0; i < inputFormat.getChannels(); i++) {
+                // To avoid NullPointerException, put before ICalleeObj.start()
+                outChannels.add(new LinkedBlockingQueue<Byte>());
+            }
+
+            for (int i = 0; i < inputFormat.getChannels(); i++) {
+                if (i > 0) {
+                    myChannelOperators.add(myOperator.getNewInstance());
+                }
+                else {
+                    myChannelOperators.add(myOperator);
+                }
+            }
+            
+            for (ICallee op : myChannelOperators) {
+                new Thread(op).start();
+            }
+
             int numBytesRead = 0;
             int numFramesRead = 0;
             // Try to read numBytes bytes from the file.
@@ -54,12 +79,6 @@ public class WavPlayer extends Thread {
                 // Calculate the number of frames actually read.
                 numFramesRead = numBytesRead / bytesPerFrame;
                 totalFramesRead += numFramesRead;
-                // Here, do something useful with the audio data that's
-                // now in the audioBytes array...
-                // silenceRightChannel(audioBytes);
-                // byte[] test =
-                // extractChannel(audioBytes, inputFormat.getSampleSizeInBits(),
-                // inputFormat.getChannels(), 0);
                 ArrayList<byte[]> channels = new ArrayList<byte[]>();
                 for (int i = 0; i < inputFormat.getChannels(); i++) {
                     channels.add(extractChannel(audioBytes, inputFormat.getSampleSizeInBits(),
@@ -67,14 +86,36 @@ public class WavPlayer extends Thread {
                 }
                 for (int i = channels.size() - 1; i >= 0; i--) {
                     byte[] data = channels.get(i);
-                    channels.remove(i);
-                    data = myOperator.process(data);
-                    channels.add(i, data);
+                    myChannelOperators.get(i).answer(this, i, data);
                 }
-                byte[] processedData =
-                        interleaveChannels(channels, inputFormat.getSampleSizeInBits());
-                sourceDataLine.write(processedData, 0, processedData.length);
+
+                // Check if enough data is in outChannels
+                int outSegmentLength = 512 * (inputFormat.getSampleSizeInBits() / Byte.SIZE);
+                boolean enoughData = true;
+                for (BlockingQueue<Byte> bq : outChannels) {
+                    if (bq.size() < outSegmentLength) {
+                        enoughData = false;
+                    }
+                }
+
+                if (enoughData) {
+                    ArrayList<byte[]> outputSegments = new ArrayList<byte[]>();
+                    for (BlockingQueue<Byte> bq : outChannels) {
+                        byte[] segment = new byte[outSegmentLength];
+                        for (int i = 0; i < segment.length; i++) {
+                            segment[i] = bq.take();
+                        }
+                        outputSegments.add(segment);
+                    }
+                    byte[] interleavedChannels =
+                            interleaveChannels(outputSegments, inputFormat.getSampleSizeInBits());
+                    sourceDataLine.write(interleavedChannels, 0, interleavedChannels.length);
+                }
+
             }
+        }
+        catch (LineUnavailableException e) {
+            e.printStackTrace();
         }
         catch (UnsupportedAudioFileException e) {
             e.printStackTrace();
@@ -82,7 +123,7 @@ public class WavPlayer extends Thread {
         catch (IOException e) {
             e.printStackTrace();
         }
-        catch (LineUnavailableException e) {
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
         finally {
@@ -91,9 +132,53 @@ public class WavPlayer extends Thread {
             sourceDataLine.stop();
             sourceDataLine.close();
             sourceDataLine = null;
+            for (ICallee op : myChannelOperators) {
+                op.stop();
+            }
         }
         System.out.println("Reached end");
     }
+
+    @Override
+    public void answer (ICallee callee, int jobID, byte[] reply) {
+        BlockingQueue<Byte> queue = outChannels.get(jobID);
+        try {
+            for (Byte b : reply) {
+                queue.put(b);
+            }
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // private class Player extends Thread {
+    //
+    // private SourceDataLine sourceDataLine;
+    // private AudioFormat inputFormat;
+    // private volatile boolean isPlaying = true;
+    //
+    // private Vector<BlockingQueue<Byte>> channels;
+    //
+    // public Player (SourceDataLine sourceDataLine, AudioFormat inputFormat) {
+    // this.sourceDataLine = sourceDataLine;
+    // this.inputFormat = inputFormat;
+    // channels = new Vector<BlockingQueue<Byte>>(inputFormat.getChannels());
+    // for (int i = 0; i < channels.size(); i++) {
+    // channels.add(new LinkedBlockingQueue<Byte>());
+    // }
+    // }
+    //
+    // @Override
+    // public void start() {
+    // try {
+    // }
+    //
+    // while (isPlaying) {
+    //
+    // }
+    // }
+    // }
 
     /**
      * Returns the bytes from a Wav format byte stream corresponding to the
@@ -150,18 +235,18 @@ public class WavPlayer extends Thread {
         return output;
     }
 
-//    private void silenceRightChannel (byte[] data) {
-//        int bytePosition = 0;
-//        for (int i = 0; i < data.length; i++) {
-//            if (bytePosition == 2 || bytePosition == 3) {
-//                data[i] = 0;
-//            }
-//            bytePosition++;
-//            if (bytePosition == 4) {
-//                bytePosition = 0;
-//            }
-//        }
-//    }
+    // private void silenceRightChannel (byte[] data) {
+    // int bytePosition = 0;
+    // for (int i = 0; i < data.length; i++) {
+    // if (bytePosition == 2 || bytePosition == 3) {
+    // data[i] = 0;
+    // }
+    // bytePosition++;
+    // if (bytePosition == 4) {
+    // bytePosition = 0;
+    // }
+    // }
+    // }
 
     private void printArray (byte[] data) {
         StringBuffer sb = new StringBuffer();
