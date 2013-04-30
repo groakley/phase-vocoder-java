@@ -11,38 +11,38 @@ public class PassThroughCallee implements ICallee {
     private volatile int myJobID;
     private volatile boolean isRunning = true;
 
-    private BlockingQueue<Byte> input = new LinkedBlockingQueue<Byte>();
-    
+    protected BlockingQueue<Byte> inputBuffer = new LinkedBlockingQueue<Byte>();
+
     @Override
-    public void run () {
+    public final void run () {
         while (isRunning) {
             if (myCaller != null) {
-                byte[] output = new byte[input.size()];
+                byte[] output;
                 try {
-                    for (int i = 0; i < output.length; i++) {
-                        output[i] = input.take();
-                    }
+                    output = process();
+                    myCaller.answer(this, myJobID, output);
                 }
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                myCaller.answer(this, myJobID, output);
             }
         }
+    }
 
+    protected byte[] process () throws InterruptedException {
+        byte[] output = new byte[inputBuffer.size()];
+        for (int i = 0; i < output.length; i++) {
+            output[i] = inputBuffer.take();
+        }
+        return output;
     }
 
     @Override
-    public void answer (ICaller caller, int jobID, byte[] data) {
+    public void answer (ICaller caller, int jobID, byte[] data) throws InterruptedException {
         myCaller = caller;
         myJobID = jobID;
         for (Byte b : data) {
-            try {
-                input.put(b);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            inputBuffer.put(b);
         }
     }
 

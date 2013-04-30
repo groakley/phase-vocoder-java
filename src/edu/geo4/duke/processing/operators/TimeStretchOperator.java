@@ -1,11 +1,10 @@
 package edu.geo4.duke.processing.operators;
 
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_1D;
-import edu.geo4.duke.processing.players.ICaller;
 import edu.geo4.duke.processing.window.WindowBuilder;
 
 
-public class TimeStretchOperator implements ICallee {
+public class TimeStretchOperator extends PassThroughCallee {
 
     private static final int WLen = 2048;
 
@@ -24,17 +23,12 @@ public class TimeStretchOperator implements ICallee {
     }
 
     @Override
-    public void run () {
-        // TODO Auto-generated method stub
-        
+    protected byte[] process () {
+
+        // TODO
+        return null;
     }
 
-    @Override
-    public void answer (ICaller caller, int jobID, byte[] data) {
-        // TODO Auto-generated method stub
-        
-    }
-    
     private static void fftShift (byte[] data) {
         if (data.length % 2 == 0) {
             fftShiftEven(data);
@@ -65,26 +59,24 @@ public class TimeStretchOperator implements ICallee {
             data[i + data.length / 2] = tmp;
         }
     }
-    
+
     public void updateStretchFactor (int stretchFactor) {
         n2 = (int) (n1 * stretchFactor);
     }
-    
+
     public float getStretchFactor () {
         return (float) n2 / (float) n1;
     }
 
-
     @Override
     public void stop () {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public ICallee getNewInstance () {
-        // TODO Auto-generated method stub
-        return null;
+        return new TimeStretchOperator(getStretchFactor());
     }
 
 }

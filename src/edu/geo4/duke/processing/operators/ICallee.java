@@ -22,7 +22,7 @@ public interface ICallee extends Runnable {
      * @param jobID integer identifying the called process
      * @param data data to be processed as an array of bytes
      */
-    public void answer (ICaller caller, int jobID, byte[] data);
+    public void answer (ICaller caller, int jobID, byte[] data) throws InterruptedException;
 
     /**
      * Stops the thread and releases any of its resources.

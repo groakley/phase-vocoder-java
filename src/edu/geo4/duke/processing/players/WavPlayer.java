@@ -32,7 +32,6 @@ public class WavPlayer extends Thread implements ICaller {
 
     @Override
     public void start () {
-        int totalFramesRead = 0;
         AudioInputStream audioInputStream;
         SourceDataLine sourceDataLine = null;
 
@@ -60,25 +59,19 @@ public class WavPlayer extends Thread implements ICaller {
             }
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
+                ICallee op;
                 if (i > 0) {
-                    myChannelOperators.add(myOperator.getNewInstance());
+                    op = myOperator.getNewInstance();
                 }
                 else {
-                    myChannelOperators.add(myOperator);
+                    op = myOperator;
                 }
-            }
-            
-            for (ICallee op : myChannelOperators) {
+                myChannelOperators.add(op);
                 new Thread(op).start();
             }
-
-            int numBytesRead = 0;
-            int numFramesRead = 0;
+            
             // Try to read numBytes bytes from the file.
-            while ((numBytesRead = audioInputStream.read(audioBytes)) != -1) {
-                // Calculate the number of frames actually read.
-                numFramesRead = numBytesRead / bytesPerFrame;
-                totalFramesRead += numFramesRead;
+            while (audioInputStream.read(audioBytes) != -1) {
                 ArrayList<byte[]> channels = new ArrayList<byte[]>();
                 for (int i = 0; i < inputFormat.getChannels(); i++) {
                     channels.add(extractChannel(audioBytes, inputFormat.getSampleSizeInBits(),
@@ -128,13 +121,13 @@ public class WavPlayer extends Thread implements ICaller {
         }
         finally {
             System.out.println("Cleaned up");
+            for (ICallee op : myChannelOperators) {
+                op.stop();
+            }
             sourceDataLine.drain();
             sourceDataLine.stop();
             sourceDataLine.close();
             sourceDataLine = null;
-            for (ICallee op : myChannelOperators) {
-                op.stop();
-            }
         }
         System.out.println("Reached end");
     }
@@ -152,33 +145,6 @@ public class WavPlayer extends Thread implements ICaller {
         }
     }
 
-    // private class Player extends Thread {
-    //
-    // private SourceDataLine sourceDataLine;
-    // private AudioFormat inputFormat;
-    // private volatile boolean isPlaying = true;
-    //
-    // private Vector<BlockingQueue<Byte>> channels;
-    //
-    // public Player (SourceDataLine sourceDataLine, AudioFormat inputFormat) {
-    // this.sourceDataLine = sourceDataLine;
-    // this.inputFormat = inputFormat;
-    // channels = new Vector<BlockingQueue<Byte>>(inputFormat.getChannels());
-    // for (int i = 0; i < channels.size(); i++) {
-    // channels.add(new LinkedBlockingQueue<Byte>());
-    // }
-    // }
-    //
-    // @Override
-    // public void start() {
-    // try {
-    // }
-    //
-    // while (isPlaying) {
-    //
-    // }
-    // }
-    // }
 
     /**
      * Returns the bytes from a Wav format byte stream corresponding to the
