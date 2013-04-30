@@ -9,7 +9,7 @@ public class SynchronizedPassThroughOperator implements SynchronizedByteOperator
 
     private BlockingQueue<Byte> inputQueue;
     private BlockingQueue<Byte> outputQueue;
-    private boolean isActive;
+    private volatile boolean isActive;
 
     public SynchronizedPassThroughOperator () {
         inputQueue = new LinkedBlockingQueue<Byte>();
