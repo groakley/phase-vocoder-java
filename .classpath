@@ -3,5 +3,10 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="jtransforms-2.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse/eclipse/plugins/org.junit_4.10.0.v4_10_0_v20120426-0900/junit.jar" sourcepath="C:/Program Files/eclipse/eclipse/plugins/org.junit.source_4.10.0.v4_10_0_v20120426-0900.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://www.junit.org/junit/javadoc/4.5"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -79,7 +79,7 @@ public class WavPlayer extends Thread implements ICaller {
                 }
                 for (int i = channels.size() - 1; i >= 0; i--) {
                     byte[] data = channels.get(i);
-                    myChannelOperators.get(i).answer(this, i, data);
+                    myChannelOperators.get(i).call(this, i, data);
                 }
 
                 // Check if enough data is in outChannels

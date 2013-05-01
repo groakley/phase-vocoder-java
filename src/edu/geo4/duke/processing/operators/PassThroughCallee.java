@@ -38,7 +38,7 @@ public class PassThroughCallee implements ICallee {
     }
 
     @Override
-    public void answer (ICaller caller, int jobID, byte[] data) throws InterruptedException {
+    public void call (ICaller caller, int jobID, byte[] data) throws InterruptedException {
         myCaller = caller;
         myJobID = jobID;
         for (Byte b : data) {
