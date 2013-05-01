@@ -11,7 +11,7 @@ public class Main {
      */
     public static void main (String[] args) {
 //        ICallee op = new PassThroughCallee();
-        ICallee op = new TimeStretchOperator(1.0f);
+        ICallee op = new TimeStretchOperator(2.0f);
         WavPlayer pv = new WavPlayer("res/sample_music/coldplay.wav", op);
         pv.start();
     }

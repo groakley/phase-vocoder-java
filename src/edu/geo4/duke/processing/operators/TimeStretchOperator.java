@@ -88,8 +88,9 @@ public class TimeStretchOperator extends PassThroughCallee {
         output.addAll(Arrays.asList(outBytes));
 
         float[] finalOutput = new float[finishedBytes.size()];
+        float overlapScaling = (float) WLen / (float) n2;
         for (int i = 0; i < finalOutput.length; i++) {
-            finalOutput[i] = finishedBytes.poll();
+            finalOutput[i] = finishedBytes.poll() / overlapScaling;
         }
         return finalOutput;
     }
