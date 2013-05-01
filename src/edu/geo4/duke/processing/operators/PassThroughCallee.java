@@ -11,13 +11,13 @@ public class PassThroughCallee implements ICallee {
     private volatile int myJobID;
     private volatile boolean isRunning = true;
 
-    protected BlockingQueue<Byte> inputBuffer = new LinkedBlockingQueue<Byte>();
+    protected BlockingQueue<Float> inputBuffer = new LinkedBlockingQueue<Float>();
 
     @Override
     public final void run () {
         while (isRunning) {
             if (myCaller != null) {
-                byte[] output;
+                float[] output;
                 try {
                     output = process();
                     myCaller.answer(this, myJobID, output);
@@ -29,8 +29,8 @@ public class PassThroughCallee implements ICallee {
         }
     }
 
-    protected byte[] process () throws InterruptedException {
-        byte[] output = new byte[inputBuffer.size()];
+    protected float[] process () throws InterruptedException {
+        float[] output = new float[inputBuffer.size()];
         for (int i = 0; i < output.length; i++) {
             output[i] = inputBuffer.take();
         }
@@ -38,11 +38,11 @@ public class PassThroughCallee implements ICallee {
     }
 
     @Override
-    public void call (ICaller caller, int jobID, byte[] data) throws InterruptedException {
+    public void call (ICaller caller, int jobID, float[] data) throws InterruptedException {
         myCaller = caller;
         myJobID = jobID;
-        for (Byte b : data) {
-            inputBuffer.put(b);
+        for (Float f : data) {
+            inputBuffer.put(f);
         }
     }
 

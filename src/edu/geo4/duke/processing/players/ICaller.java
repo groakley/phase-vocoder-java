@@ -4,6 +4,6 @@ import edu.geo4.duke.processing.operators.ICallee;
 
 public interface ICaller {
     
-    public void answer(ICallee callee, int jobID, byte[] reply);
+    public void answer(ICallee callee, int jobID, float[] reply);
 
 }

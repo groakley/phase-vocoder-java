@@ -11,8 +11,8 @@ public class TimeStretchOperator extends PassThroughCallee {
 
     private static final int WLen = 2048;
 
-    private CapacityQueue<Byte> input;
-    private CapacityQueue<Byte> output;
+    private CapacityQueue<Float> input;
+    private CapacityQueue<Float> output;
 
     private final float[] w1;
     private final int n1 = 512;
@@ -30,23 +30,28 @@ public class TimeStretchOperator extends PassThroughCallee {
         omega = WindowBuilder.buildOmega(WLen, n1);
         phi0 = new float[WLen];
         psi = new float[WLen];
-        input = new CapacityQueue<Byte>(WLen);
-        output = new CapacityQueue<Byte>(WLen);
+        input = new CapacityQueue<Float>(WLen);
+        output = new CapacityQueue<Float>(WLen);
         for (int i = 0; i < output.getCapacity(); i++) {
-            output.offer((byte) 0);
+            output.offer(0f);
         }
     }
 
     @Override
-    protected byte[] process () throws InterruptedException {
-        if (inputBuffer.size() < WLen) { return new byte[0]; }
+    protected float[] process () throws InterruptedException {
+        if (inputBuffer.size() < WLen) { return new float[0]; }
 
         float[] grain = getNextGrain();
         fftShift(grain);
-        float[] doubleGrain = Arrays.copyOf(grain, WLen * 2);
+
+        float[] doubleGrain = new float[grain.length * 2];
+        for (int i = 0; i < grain.length; i++) {
+            doubleGrain[i] = grain[i];
+        }
+
         FFT.realForwardFull(doubleGrain);
-        float[] r = findReal(doubleGrain);
-        float[] phi = findImag(doubleGrain);
+        float[] r = findMag(doubleGrain);
+        float[] phi = findAngle(doubleGrain);
 
         float[] delta_phi = new float[WLen];
         for (int i = 0; i < delta_phi.length; i++) {
@@ -60,7 +65,7 @@ public class TimeStretchOperator extends PassThroughCallee {
             doubleGrain[i] = (float) Math.cos(psiTmp) * rTmp;
             doubleGrain[i + 1] = (float) Math.sin(psiTmp) * rTmp;
         }
-        FFT.realInverseFull(doubleGrain, false);
+        FFT.complexInverse(doubleGrain, true);
         grain = extractReal(doubleGrain);
         fftShift(grain);
         for (int i = 0; i < grain.length; i++) {
@@ -69,20 +74,20 @@ public class TimeStretchOperator extends PassThroughCallee {
 
         phi0 = Arrays.copyOf(phi, phi0.length);
 
-        LinkedList<Byte> finishedBytes = new LinkedList<Byte>();
+        LinkedList<Float> finishedBytes = new LinkedList<Float>();
         for (int i = 0; i < n2; i++) {
             finishedBytes.add(output.poll());
-            output.offer((byte) 0);
+            output.offer(0f);
         }
-        Byte[] outBytes = new Byte[output.getCapacity()];
+        Float[] outBytes = new Float[output.getCapacity()];
         output.toArray(outBytes);
 
         for (int i = 0; i < outBytes.length; i++) {
-            outBytes[i] = new Byte((byte) (mapFloatToByte(grain[i]) + outBytes[i].byteValue()));
+            outBytes[i] = new Float(grain[i] + outBytes[i]);
         }
         output.addAll(Arrays.asList(outBytes));
 
-        byte[] finalOutput = new byte[finishedBytes.size()];
+        float[] finalOutput = new float[finishedBytes.size()];
         for (int i = 0; i < finalOutput.length; i++) {
             finalOutput[i] = finishedBytes.poll();
         }
@@ -100,12 +105,11 @@ public class TimeStretchOperator extends PassThroughCallee {
                 input.offer(inputBuffer.take());
             }
         }
-        Byte[] inBytes = new Byte[WLen];
-        input.toArray(inBytes);
+        Float[] inBytes = input.toArray(new Float[0]);
 
         float[] grain = new float[WLen];
         for (int i = 0; i < WLen; i++) {
-            grain[i] = mapByteToFloat(inBytes[i]) * w1[i];
+            grain[i] = inBytes[i] * w1[i];
         }
         return grain;
     }
@@ -118,22 +122,22 @@ public class TimeStretchOperator extends PassThroughCallee {
         return realPart;
     }
 
-    private static float[] findReal (float[] complex) {
-        float[] realPart = new float[complex.length / 2];
-        for (int i = 0; i < realPart.length; i++) {
-            realPart[i] =
+    private static float[] findMag (float[] complex) {
+        float[] mag = new float[complex.length / 2];
+        for (int i = 0; i < mag.length; i++) {
+            mag[i] =
                     (float) Math
                             .sqrt(Math.pow(complex[2 * i], 2) + Math.pow(complex[2 * i + 1], 2));
         }
-        return realPart;
+        return mag;
     }
 
-    private static float[] findImag (float[] complex) {
-        float[] imagPart = new float[complex.length / 2];
-        for (int i = 0; i < imagPart.length; i++) {
-            imagPart[i] = (float) Math.atan((complex[2 * i] + 1) / complex[2 * i]);
+    private static float[] findAngle (float[] complex) {
+        float[] angle = new float[complex.length / 2];
+        for (int i = 0; i < angle.length; i++) {
+            angle[i] = (float) Math.atan2(complex[2 * i + 1], complex[2 * i]);
         }
-        return imagPart;
+        return angle;
     }
 
     private static void fftShift (float[] data) {
@@ -183,18 +187,6 @@ public class TimeStretchOperator extends PassThroughCallee {
     @Override
     public ICallee getNewInstance () {
         return new TimeStretchOperator(getStretchFactor());
-    }
-
-    private static float mapByteToFloat (byte inByte) {
-        final float m = 2f / 255f;
-        final float b = 1f - m * 127f;
-        return m * (float) inByte + b;
-    }
-
-    private static byte mapFloatToByte (float inFloat) {
-        final float m = 255f / 2f;
-        final float b = 127f - m;
-        return (byte) (m * inFloat + b);
     }
 
 }

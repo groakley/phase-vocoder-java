@@ -22,6 +22,7 @@ public class WavPlayer extends Thread implements ICaller {
     ICallee myOperator;
     private Vector<BlockingQueue<Byte>> outChannels;
     private Vector<ICallee> myChannelOperators;
+    private int sampleSizeInBytes;
 
     public WavPlayer (String filePath, ICallee operator) {
         myInput = new File(filePath);
@@ -38,6 +39,7 @@ public class WavPlayer extends Thread implements ICaller {
         try {
             audioInputStream = AudioSystem.getAudioInputStream(myInput);
             AudioFormat inputFormat = audioInputStream.getFormat();
+            sampleSizeInBytes = inputFormat.getSampleSizeInBits() / Byte.SIZE;
             int bytesPerFrame = inputFormat.getFrameSize();
             if (bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
                 // some audio formats may have unspecified frame size
@@ -69,7 +71,7 @@ public class WavPlayer extends Thread implements ICaller {
                 myChannelOperators.add(op);
                 new Thread(op).start();
             }
-            
+
             // Try to read numBytes bytes from the file.
             while (audioInputStream.read(audioBytes) != -1) {
                 ArrayList<byte[]> channels = new ArrayList<byte[]>();
@@ -79,11 +81,11 @@ public class WavPlayer extends Thread implements ICaller {
                 }
                 for (int i = channels.size() - 1; i >= 0; i--) {
                     byte[] data = channels.get(i);
-                    myChannelOperators.get(i).call(this, i, data);
+                    myChannelOperators.get(i).call(this, i, byteToFloat(data, sampleSizeInBytes));
                 }
 
                 // Check if enough data is in outChannels
-                int outSegmentLength = 512 * (inputFormat.getSampleSizeInBits() / Byte.SIZE);
+                int outSegmentLength = 512 * (sampleSizeInBytes);
                 boolean enoughData = true;
                 for (BlockingQueue<Byte> bq : outChannels) {
                     if (bq.size() < outSegmentLength) {
@@ -133,10 +135,10 @@ public class WavPlayer extends Thread implements ICaller {
     }
 
     @Override
-    public void answer (ICallee callee, int jobID, byte[] reply) {
+    public void answer (ICallee callee, int jobID, float[] reply) {
         BlockingQueue<Byte> queue = outChannels.get(jobID);
         try {
-            for (Byte b : reply) {
+            for (Byte b : floatToByte(reply, sampleSizeInBytes)) {
                 queue.put(b);
             }
         }
@@ -145,6 +147,33 @@ public class WavPlayer extends Thread implements ICaller {
         }
     }
 
+    private static float[] byteToFloat (byte[] bytes, int bytesPerSample) {
+        float[] output = new float[bytes.length / bytesPerSample];
+        for (int i = 0; i < output.length; i++) {
+            byte[] frames = new byte[8];
+            for (int j = 0; j < bytesPerSample; j++) {
+                frames[j] = bytes[bytesPerSample * i + j];
+            }
+            long composite =
+                    (long) ((frames[7] << 56) | (frames[6] << 48) | frames[5] << 40 |
+                            frames[4] << 32 | frames[3] << 24 | frames[2] << 16 | frames[1] << 8 | (frames[0] & 0xFF));
+            float fComposite = (float) composite;
+            fComposite = (float) (fComposite / Math.pow(2,bytesPerSample * 8 - 1));
+            output[i] = fComposite;
+        }
+        return output;
+    }
+
+    private static byte[] floatToByte (float[] floats, int bytesPerSample) {
+        byte[] output = new byte[floats.length * bytesPerSample];
+        for (int i = 0; i < output.length - bytesPerSample + 1; i = i + bytesPerSample) {
+            long composite = (long) (floats[i / bytesPerSample] * Math.pow(2, bytesPerSample * 8 - 1));
+            for (int j = 0; j < bytesPerSample; j++) {
+                output[i+j] = (byte) ((composite >> 8*j) & 0xFF);
+            }
+        }
+        return output;
+    }
 
     /**
      * Returns the bytes from a Wav format byte stream corresponding to the
