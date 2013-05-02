@@ -57,7 +57,8 @@ public class WavPlayer extends Thread implements ICaller {
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
                 // To avoid NullPointerException, put before ICalleeObj.start()
-                outChannels.add(new LinkedBlockingQueue<Byte>());
+//                outChannels.add(new LinkedBlockingQueue<Byte>(262144 * sampleSizeInBytes));
+                outChannels.add(new LinkedBlockingQueue<Byte>(131072 * sampleSizeInBytes));
             }
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
@@ -146,7 +147,7 @@ public class WavPlayer extends Thread implements ICaller {
             e.printStackTrace();
         }
     }
-
+    
     private static float[] byteToFloat (byte[] bytes, int bytesPerSample) {
         float[] output = new float[bytes.length / bytesPerSample];
         for (int i = 0; i < output.length; i++) {
@@ -229,19 +230,6 @@ public class WavPlayer extends Thread implements ICaller {
         }
         return output;
     }
-
-    // private void silenceRightChannel (byte[] data) {
-    // int bytePosition = 0;
-    // for (int i = 0; i < data.length; i++) {
-    // if (bytePosition == 2 || bytePosition == 3) {
-    // data[i] = 0;
-    // }
-    // bytePosition++;
-    // if (bytePosition == 4) {
-    // bytePosition = 0;
-    // }
-    // }
-    // }
 
     private void printArray (byte[] data) {
         StringBuffer sb = new StringBuffer();

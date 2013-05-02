@@ -16,7 +16,7 @@ public class TimeStretchOperator extends PassThroughCallee {
 
     private final float[] w1;
     private final int n1 = 512;
-    private volatile int n2;
+    private static volatile int n2;
 
     private FloatFFT_1D FFT;
     private float[] omega;
@@ -39,6 +39,7 @@ public class TimeStretchOperator extends PassThroughCallee {
 
     @Override
     protected float[] process () throws InterruptedException {
+        
         if (inputBuffer.size() < WLen) { return new float[0]; }
 
         float[] grain = getNextGrain();
@@ -79,8 +80,7 @@ public class TimeStretchOperator extends PassThroughCallee {
             finishedBytes.add(output.poll());
             output.offer(0f);
         }
-        Float[] outBytes = new Float[output.getCapacity()];
-        output.toArray(outBytes);
+        Float[] outBytes = output.toArray(new Float[0]);
 
         for (int i = 0; i < outBytes.length; i++) {
             outBytes[i] = new Float(grain[i] + outBytes[i]);
@@ -176,9 +176,8 @@ public class TimeStretchOperator extends PassThroughCallee {
         return (float) ((((double) phase + Math.PI) % (-2 * Math.PI)) + Math.PI);
     }
 
-    public void updateStretchFactor (int stretchFactor) {
-        n2 = (int) (n1 * stretchFactor);
-        output.setCapacity(n2);
+    public synchronized void updateStretchFactor (float stretchFactor) {
+        n2 = (int) ((float) n1 * stretchFactor);
     }
 
     public float getStretchFactor () {

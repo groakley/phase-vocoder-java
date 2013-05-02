@@ -1,3 +1,5 @@
+import javax.swing.JFrame;
+import edu.geo4.duke.gui.ApplicationFrame;
 import edu.geo4.duke.processing.operators.ICallee;
 import edu.geo4.duke.processing.operators.PassThroughCallee;
 import edu.geo4.duke.processing.operators.TimeStretchOperator;
@@ -11,7 +13,8 @@ public class Main {
      */
     public static void main (String[] args) {
 //        ICallee op = new PassThroughCallee();
-        ICallee op = new TimeStretchOperator(2.0f);
+        TimeStretchOperator op = new TimeStretchOperator(1.0f);
+        JFrame frame = new ApplicationFrame(op);
         WavPlayer pv = new WavPlayer("res/sample_music/coldplay.wav", op);
         pv.start();
     }
