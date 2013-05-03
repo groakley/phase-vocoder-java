@@ -2,7 +2,9 @@ package edu.geo4.duke.gui;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Hashtable;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
@@ -17,7 +19,10 @@ public class ControlsContainer extends JPanel {
     
     public ControlsContainer (final ApplicationFrame frame) {
         super();
-        mySpeedControl = new JSlider(SwingConstants.HORIZONTAL, -50, 50, 0);
+        
+        final int SLIDER_MIN = -50;
+        final int SLIDER_MAX = 50;
+        mySpeedControl = new JSlider(SwingConstants.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, 0);
         mySpeedControl.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged (ChangeEvent e) {
@@ -25,8 +30,16 @@ public class ControlsContainer extends JPanel {
                 frame.updateStretchFactor(stretchFactor);
             }
         });
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+        labelTable.put(new Integer(SLIDER_MIN), new JLabel("Slower"));
+        labelTable.put(new Integer(SLIDER_MAX), new JLabel("Faster"));
+        mySpeedControl.setLabelTable(labelTable);
+        mySpeedControl.setPaintLabels(true);
         add(mySpeedControl);
-        final JCheckBox mySetLock = new JCheckBox();
+        
+        add(new JLabel("      "));
+        
+        final JCheckBox mySetLock = new JCheckBox("Lock Phase");
         mySetLock.addItemListener(new ItemListener(){
             @Override
             public void itemStateChanged (ItemEvent e) {
