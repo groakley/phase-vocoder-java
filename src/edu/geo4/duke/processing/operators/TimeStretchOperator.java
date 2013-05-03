@@ -17,15 +17,17 @@ public class TimeStretchOperator extends PassThroughCallee {
     private final float[] w1;
     private final int n1 = 512;
     private static volatile int n2;
+    private static volatile boolean myLockPhase;
 
     private FloatFFT_1D FFT;
     private float[] omega;
     private float[] phi0;
     private float[] psi;
 
-    public TimeStretchOperator (float stretchFactor) {
+    public TimeStretchOperator (float stretchFactor, boolean lockPhase) {
         FFT = new FloatFFT_1D(WLen);
         n2 = (int) (n1 * stretchFactor);
+        lockPhase = lockPhase;
         w1 = WindowBuilder.buildHanning(WLen, true);
         omega = WindowBuilder.buildOmega(WLen, n1);
         phi0 = new float[WLen];
@@ -69,6 +71,17 @@ public class TimeStretchOperator extends PassThroughCallee {
             doubleGrain[i] = (float) Math.cos(psiTmp) * rTmp;
             doubleGrain[i + 1] = (float) Math.sin(psiTmp) * rTmp;
         }
+
+        if (myLockPhase) {
+            float[] phaseLocked = new float[doubleGrain.length];
+            for (int i = 2; i < phaseLocked.length - 2; i++) {
+                phaseLocked[i] =
+                        doubleGrain[i - 2] + doubleGrain[i] + doubleGrain[i + 2];
+            }
+            float[] phaseLockAngles = findAngle(phaseLocked);
+            setAngles(doubleGrain, phaseLockAngles);
+        }
+
         FFT.complexInverse(doubleGrain, true);
         grain = extractReal(doubleGrain);
         fftShift(grain);
@@ -135,6 +148,14 @@ public class TimeStretchOperator extends PassThroughCallee {
         }
         return mag;
     }
+    
+    private static void setAngles(float[] target, float[] angles) {
+        float[] mags = findMag(target);
+        for (int i = 0; i < angles.length; i++) {
+            target[2 * i] = (float) (mags[i] * Math.cos(angles[i]));
+            target[2 * i + 1] = (float) (mags[i] * Math.sin(angles[i]));
+        }
+    }
 
     private static float[] findAngle (float[] complex) {
         float[] angle = new float[complex.length / 2];
@@ -182,6 +203,10 @@ public class TimeStretchOperator extends PassThroughCallee {
     public synchronized void updateStretchFactor (float stretchFactor) {
         n2 = (int) ((float) n1 * stretchFactor);
     }
+    
+    public synchronized void updateLockPhase (boolean lockPhase) {
+        myLockPhase = lockPhase;
+    }
 
     public float getStretchFactor () {
         return (float) n2 / (float) n1;
@@ -189,7 +214,7 @@ public class TimeStretchOperator extends PassThroughCallee {
 
     @Override
     public ICallee getNewInstance () {
-        return new TimeStretchOperator(getStretchFactor());
+        return new TimeStretchOperator(getStretchFactor(), myLockPhase);
     }
 
 }

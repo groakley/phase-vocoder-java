@@ -1,5 +1,8 @@
 package edu.geo4.duke.gui;
 
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
@@ -23,6 +26,14 @@ public class ControlsContainer extends JPanel {
             }
         });
         add(mySpeedControl);
+        final JCheckBox mySetLock = new JCheckBox();
+        mySetLock.addItemListener(new ItemListener(){
+            @Override
+            public void itemStateChanged (ItemEvent e) {
+                frame.updateLocked(mySetLock.isSelected());
+            }
+        });
+        add(mySetLock);
         setVisible(true);
     }
 

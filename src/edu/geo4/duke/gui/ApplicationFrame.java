@@ -23,5 +23,9 @@ public class ApplicationFrame extends JFrame {
     protected void updateStretchFactor (float stretchFactor) {
         myOp.updateStretchFactor(stretchFactor);
     }
+    
+    protected void updateLocked (boolean locked) {
+        myOp.updateLockPhase(locked);
+    }
 
 }
