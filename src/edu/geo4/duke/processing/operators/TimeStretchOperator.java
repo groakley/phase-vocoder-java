@@ -41,6 +41,9 @@ public class TimeStretchOperator extends PassThroughCallee {
     protected float[] process () throws InterruptedException {
         
         if (inputBuffer.size() < WLen) { return new float[0]; }
+        
+        int grainN2 = n2;
+        float grainStretchFactor = (float) grainN2 / (float) n1;
 
         float[] grain = getNextGrain();
         fftShift(grain);
@@ -58,7 +61,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         for (int i = 0; i < delta_phi.length; i++) {
             float diff = phi[i] - phi0[i] - omega[i];
             delta_phi[i] = omega[i] + princarg(diff);
-            psi[i] = princarg(psi[i] + delta_phi[i] * getStretchFactor());
+            psi[i] = princarg(psi[i] + delta_phi[i] * grainStretchFactor);
         }
         for (int i = 0; i < doubleGrain.length - 1; i = i + 2) {
             float psiTmp = psi[i / 2];
@@ -76,7 +79,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         phi0 = Arrays.copyOf(phi, phi0.length);
 
         LinkedList<Float> finishedBytes = new LinkedList<Float>();
-        for (int i = 0; i < n2; i++) {
+        for (int i = 0; i < grainN2; i++) {
             finishedBytes.add(output.poll());
             output.offer(0f);
         }
@@ -88,7 +91,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         output.addAll(Arrays.asList(outBytes));
 
         float[] finalOutput = new float[finishedBytes.size()];
-        float overlapScaling = (float) WLen / (float) n2;
+        float overlapScaling = (float) WLen / (float) grainN2;
         for (int i = 0; i < finalOutput.length; i++) {
             finalOutput[i] = finishedBytes.poll() / overlapScaling;
         }
