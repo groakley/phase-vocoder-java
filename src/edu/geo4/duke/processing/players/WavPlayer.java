@@ -136,6 +136,7 @@ public class WavPlayer extends Thread implements ICaller {
             sourceDataLine = null;
         }
         System.out.println("Reached end");
+        System.exit(0);
     }
 
     @Override

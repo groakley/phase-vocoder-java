@@ -20,7 +20,7 @@ public class Main {
 //        ICallee op = new PassThroughCallee();
         TimeStretchOperator op = new TimeStretchOperator(1.0f, false);
         JFrame frame = new ApplicationFrame(op);
-        WavPlayer pv = new WavPlayer("res/sample_music/coldplay.wav", op);
+        WavPlayer pv = new WavPlayer("res/sample_music/coldplay_shortened.wav", op);
         pv.start();
     }
 
