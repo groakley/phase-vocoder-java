@@ -18,7 +18,7 @@ public class ControlsContainer extends JPanel {
         mySpeedControl.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged (ChangeEvent e) {
-                float stretchFactor = (float) mySpeedControl.getValue() / 100f + 1f;
+                float stretchFactor = ((float) -mySpeedControl.getValue() / 100f) + 1f;
                 frame.updateStretchFactor(stretchFactor);
             }
         });
