@@ -27,7 +27,7 @@ public class TimeStretchOperator extends PassThroughCallee {
     public TimeStretchOperator (float stretchFactor, boolean lockPhase) {
         FFT = new FloatFFT_1D(WLen);
         n2 = (int) (n1 * stretchFactor);
-        lockPhase = lockPhase;
+        myLockPhase = lockPhase;
         w1 = WindowBuilder.buildHanning(WLen, true);
         omega = WindowBuilder.buildOmega(WLen, n1);
         phi0 = new float[WLen];
@@ -65,6 +65,8 @@ public class TimeStretchOperator extends PassThroughCallee {
             delta_phi[i] = omega[i] + princarg(diff);
             psi[i] = princarg(psi[i] + delta_phi[i] * grainStretchFactor);
         }
+//        psi = phi;
+        
         for (int i = 0; i < doubleGrain.length - 1; i = i + 2) {
             float psiTmp = psi[i / 2];
             float rTmp = r[i / 2];

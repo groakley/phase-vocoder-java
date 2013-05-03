@@ -172,7 +172,9 @@ public class WavPlayer extends Thread implements ICaller {
     private static byte[] floatToByte (float[] floats, int bytesPerSample) {
         byte[] output = new byte[floats.length * bytesPerSample];
         for (int i = 0; i < output.length - bytesPerSample + 1; i = i + bytesPerSample) {
-            long composite = (long) (floats[i / bytesPerSample] * Math.pow(2, bytesPerSample * 8 - 1));
+            float clipped = Math.max(-1.0f, floats[i / bytesPerSample]);
+            clipped = Math.min(1.0f, clipped);
+            long composite = (long) (clipped * Math.pow(2, bytesPerSample * 8 - 1));
             for (int j = 0; j < bytesPerSample; j++) {
                 output[i+j] = (byte) ((composite >> 8*j) & 0xFF);
             }
