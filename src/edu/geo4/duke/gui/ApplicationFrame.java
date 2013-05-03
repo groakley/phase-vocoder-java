@@ -17,6 +17,7 @@ public class ApplicationFrame extends JFrame {
         add(new ControlsContainer(this));
         pack();
         setResizable(false);
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 
