@@ -11,7 +11,8 @@ public class PassThroughCallee implements ICallee {
     private volatile int myJobID;
     private volatile boolean isRunning = true;
 
-    protected BlockingQueue<Float> inputBuffer = new LinkedBlockingQueue<Float>();
+//    protected BlockingQueue<Float> inputBuffer = new LinkedBlockingQueue<Float>();
+    protected BlockingQueue<Float> inputBuffer = new LinkedBlockingQueue<Float>(8192);
 
     @Override
     public final void run () {
@@ -54,6 +55,11 @@ public class PassThroughCallee implements ICallee {
     @Override
     public ICallee getNewInstance () {
         return new PassThroughCallee();
+    }
+
+    @Override
+    public int remainingCapacity () {
+        return inputBuffer.remainingCapacity();
     }
 
 }

@@ -38,4 +38,11 @@ public interface ICallee extends Runnable {
      */
     public ICallee getNewInstance ();
 
+    /**
+     * Finds how many more elements could be added without blocking.
+     * 
+     * @return the capacity remaining before the call operation will block
+     */
+    public int remainingCapacity ();
+
 }
