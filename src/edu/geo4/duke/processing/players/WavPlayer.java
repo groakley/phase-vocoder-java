@@ -48,6 +48,7 @@ public class WavPlayer extends Thread implements ICaller {
             }
             // Set an arbitrary buffer size of 1024 frames.
             int numBytes = 1024 * bytesPerFrame;
+//            int numBytes = 2048 * bytesPerFrame;
             byte[] audioBytes = new byte[numBytes];
 
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, inputFormat);
@@ -58,7 +59,9 @@ public class WavPlayer extends Thread implements ICaller {
             for (int i = 0; i < inputFormat.getChannels(); i++) {
                 // To avoid NullPointerException, put before ICalleeObj.start()
 //                outChannels.add(new LinkedBlockingQueue<Byte>(262144 * sampleSizeInBytes));
-                outChannels.add(new LinkedBlockingQueue<Byte>(131072 * sampleSizeInBytes));
+//                outChannels.add(new LinkedBlockingQueue<Byte>(131072 * sampleSizeInBytes));
+                outChannels.add(new LinkedBlockingQueue<Byte>(16384 * sampleSizeInBytes));
+                
             }
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
@@ -86,7 +89,7 @@ public class WavPlayer extends Thread implements ICaller {
                 }
 
                 // Check if enough data is in outChannels
-                int outSegmentLength = 512 * (sampleSizeInBytes);
+                int outSegmentLength = 1024 * (sampleSizeInBytes);
                 boolean enoughData = true;
                 for (BlockingQueue<Byte> bq : outChannels) {
                     if (bq.size() < outSegmentLength) {
