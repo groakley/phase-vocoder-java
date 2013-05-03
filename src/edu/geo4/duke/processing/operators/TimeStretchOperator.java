@@ -26,7 +26,7 @@ public class TimeStretchOperator extends PassThroughCallee {
     public TimeStretchOperator (float stretchFactor) {
         FFT = new FloatFFT_1D(WLen);
         n2 = (int) (n1 * stretchFactor);
-        w1 = WindowBuilder.buildHamming(WLen);
+        w1 = WindowBuilder.buildHanning(WLen, true);
         omega = WindowBuilder.buildOmega(WLen, n1);
         phi0 = new float[WLen];
         psi = new float[WLen];
@@ -39,9 +39,9 @@ public class TimeStretchOperator extends PassThroughCallee {
 
     @Override
     protected float[] process () throws InterruptedException {
-        
+
         if (inputBuffer.size() < WLen) { return new float[0]; }
-        
+
         int grainN2 = n2;
         float grainStretchFactor = (float) grainN2 / (float) n1;
 
@@ -91,7 +91,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         output.addAll(Arrays.asList(outBytes));
 
         float[] finalOutput = new float[finishedBytes.size()];
-        float overlapScaling = (float) WLen / (float) grainN2;
+        float overlapScaling = (float) WLen / ((float) grainN2 * 2.0f);
         for (int i = 0; i < finalOutput.length; i++) {
             finalOutput[i] = finishedBytes.poll() / overlapScaling;
         }
