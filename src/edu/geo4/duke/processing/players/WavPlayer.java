@@ -25,7 +25,11 @@ public class WavPlayer extends Thread implements ICaller {
     private int sampleSizeInBytes;
 
     public WavPlayer (String filePath, ICallee operator) {
-        myInput = new File(filePath);
+        this(new File(filePath), operator);
+    }
+
+    public WavPlayer (File file, ICallee operator) {
+        myInput = file;
         myOperator = operator;
         outChannels = new Vector<BlockingQueue<Byte>>();
         myChannelOperators = new Vector<ICallee>();
@@ -57,11 +61,6 @@ public class WavPlayer extends Thread implements ICaller {
             sourceDataLine.start();
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
-                // To avoid NullPointerException, put before ICalleeObj.start()
-                // outChannels.add(new LinkedBlockingQueue<Byte>(262144 *
-                // sampleSizeInBytes));
-                // outChannels.add(new LinkedBlockingQueue<Byte>(131072 *
-                // sampleSizeInBytes));
                 outChannels.add(new LinkedBlockingQueue<Byte>(16384 * sampleSizeInBytes));
 
             }
@@ -142,7 +141,6 @@ public class WavPlayer extends Thread implements ICaller {
             e.printStackTrace();
         }
         finally {
-            System.out.println("Cleaned up");
             for (ICallee op : myChannelOperators) {
                 op.stop();
             }
@@ -151,7 +149,6 @@ public class WavPlayer extends Thread implements ICaller {
             sourceDataLine.close();
             sourceDataLine = null;
         }
-        System.out.println("Reached end");
         System.exit(0);
     }
 
@@ -251,14 +248,6 @@ public class WavPlayer extends Thread implements ICaller {
             chanIdx += numBytesPerSample;
         }
         return output;
-    }
-
-    private void printArray (byte[] data) {
-        StringBuffer sb = new StringBuffer();
-        for (Byte b : data) {
-            sb.append(b + ", ");
-        }
-        System.out.println(sb.toString());
     }
 
 }

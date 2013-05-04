@@ -28,5 +28,5 @@ public class ApplicationFrame extends JFrame {
     protected void updateLocked (boolean locked) {
         myOp.updateLockPhase(locked);
     }
-
+    
 }

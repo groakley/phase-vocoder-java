@@ -7,7 +7,7 @@ import edu.geo4.duke.processing.window.WindowBuilder;
 import edu.geo4.duke.util.CapacityQueue;
 
 
-public class TimeStretchOperator extends PassThroughCallee {
+public class TimeStretchOperator extends DSPOperator {
 
     private static final int WLen = 2048;
 
@@ -50,6 +50,34 @@ public class TimeStretchOperator extends PassThroughCallee {
         float[] grain = getNextGrain();
         fftShift(grain);
 
+        grain = timeStretchGrain(grainStretchFactor, grain);
+
+        LinkedList<Float> finishedBytes = overlapAddAndSlide(grainN2, grain);
+
+        float[] finalOutput = new float[finishedBytes.size()];
+        float overlapScaling = (float) WLen / ((float) grainN2 * 2.0f);
+        for (int i = 0; i < finalOutput.length; i++) {
+            finalOutput[i] = finishedBytes.poll() / overlapScaling;
+        }
+        return finalOutput;
+    }
+
+    private LinkedList<Float> overlapAddAndSlide (int grainN2, float[] grain) {
+        LinkedList<Float> finishedBytes = new LinkedList<Float>();
+        for (int i = 0; i < grainN2; i++) {
+            finishedBytes.add(output.poll());
+            output.offer(0f);
+        }
+        Float[] outBytes = output.toArray(new Float[0]);
+
+        for (int i = 0; i < outBytes.length; i++) {
+            outBytes[i] = new Float(grain[i] + outBytes[i]);
+        }
+        output.addAll(Arrays.asList(outBytes));
+        return finishedBytes;
+    }
+
+    private float[] timeStretchGrain (float grainStretchFactor, float[] grain) {
         float[] doubleGrain = new float[grain.length * 2];
         for (int i = 0; i < grain.length; i++) {
             doubleGrain[i] = grain[i];
@@ -65,8 +93,7 @@ public class TimeStretchOperator extends PassThroughCallee {
             delta_phi[i] = omega[i] + princarg(diff);
             psi[i] = princarg(psi[i] + delta_phi[i] * grainStretchFactor);
         }
-//        psi = phi;
-        
+
         for (int i = 0; i < doubleGrain.length - 1; i = i + 2) {
             float psiTmp = psi[i / 2];
             float rTmp = r[i / 2];
@@ -77,8 +104,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         if (myLockPhase) {
             float[] phaseLocked = new float[doubleGrain.length];
             for (int i = 2; i < phaseLocked.length - 2; i++) {
-                phaseLocked[i] =
-                        doubleGrain[i - 2] + doubleGrain[i] + doubleGrain[i + 2];
+                phaseLocked[i] = doubleGrain[i - 2] + doubleGrain[i] + doubleGrain[i + 2];
             }
             float[] phaseLockAngles = findAngle(phaseLocked);
             setAngles(doubleGrain, phaseLockAngles);
@@ -92,25 +118,7 @@ public class TimeStretchOperator extends PassThroughCallee {
         }
 
         phi0 = Arrays.copyOf(phi, phi0.length);
-
-        LinkedList<Float> finishedBytes = new LinkedList<Float>();
-        for (int i = 0; i < grainN2; i++) {
-            finishedBytes.add(output.poll());
-            output.offer(0f);
-        }
-        Float[] outBytes = output.toArray(new Float[0]);
-
-        for (int i = 0; i < outBytes.length; i++) {
-            outBytes[i] = new Float(grain[i] + outBytes[i]);
-        }
-        output.addAll(Arrays.asList(outBytes));
-
-        float[] finalOutput = new float[finishedBytes.size()];
-        float overlapScaling = (float) WLen / ((float) grainN2 * 2.0f);
-        for (int i = 0; i < finalOutput.length; i++) {
-            finalOutput[i] = finishedBytes.poll() / overlapScaling;
-        }
-        return finalOutput;
+        return grain;
     }
 
     private float[] getNextGrain () throws InterruptedException {
@@ -150,12 +158,12 @@ public class TimeStretchOperator extends PassThroughCallee {
         }
         return mag;
     }
-    
-    private static void setAngles(float[] target, float[] angles) {
-        float[] mags = findMag(target);
-        for (int i = 0; i < angles.length; i++) {
-            target[2 * i] = (float) (mags[i] * Math.cos(angles[i]));
-            target[2 * i + 1] = (float) (mags[i] * Math.sin(angles[i]));
+
+    private static void setAngles (float[] complex, float[] newAngles) {
+        float[] mags = findMag(complex);
+        for (int i = 0; i < newAngles.length; i++) {
+            complex[2 * i] = (float) (mags[i] * Math.cos(newAngles[i]));
+            complex[2 * i + 1] = (float) (mags[i] * Math.sin(newAngles[i]));
         }
     }
 
@@ -205,12 +213,12 @@ public class TimeStretchOperator extends PassThroughCallee {
     public synchronized void updateStretchFactor (float stretchFactor) {
         n2 = (int) ((float) n1 * stretchFactor);
     }
-    
+
     public synchronized void updateLockPhase (boolean lockPhase) {
         myLockPhase = lockPhase;
     }
 
-    public float getStretchFactor () {
+    public synchronized float getStretchFactor () {
         return (float) n2 / (float) n1;
     }
 

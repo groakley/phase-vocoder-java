@@ -5,7 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import edu.geo4.duke.processing.players.ICaller;
 
 
-public class PassThroughCallee implements ICallee {
+public class DSPOperator implements ICallee {
 
     private volatile ICaller myCaller = null;
     private volatile int myJobID;
@@ -54,7 +54,7 @@ public class PassThroughCallee implements ICallee {
 
     @Override
     public ICallee getNewInstance () {
-        return new PassThroughCallee();
+        return new DSPOperator();
     }
 
     @Override

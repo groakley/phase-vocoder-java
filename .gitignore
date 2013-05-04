@@ -1,6 +1,5 @@
-src/edu/geo4/duke/experimental/*
 *.class
-
+bin/*
 *~
 *.lock
 *.DS_Store

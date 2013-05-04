@@ -3,8 +3,6 @@ package edu.geo4.duke.util;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import junit.framework.Assert;
-
 
 public class CapacityQueue<E> extends LinkedList<E> {
 
