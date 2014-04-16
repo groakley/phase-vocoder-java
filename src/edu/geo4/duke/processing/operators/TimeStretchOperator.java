@@ -9,7 +9,7 @@ import edu.geo4.duke.util.CapacityQueue;
 
 public class TimeStretchOperator extends DSPOperator {
 
-    private static final int WLen = 2048;
+    private static final int WIN_LEN = 2048;
 
     private CapacityQueue<Float> input;
     private CapacityQueue<Float> output;
@@ -25,15 +25,15 @@ public class TimeStretchOperator extends DSPOperator {
     private float[] psi;
 
     public TimeStretchOperator (float stretchFactor, boolean lockPhase) {
-        FFT = new FloatFFT_1D(WLen);
+        FFT = new FloatFFT_1D(WIN_LEN);
         n2 = (int) (n1 * stretchFactor);
         myLockPhase = lockPhase;
-        w1 = WindowBuilder.buildHanning(WLen, true);
-        omega = WindowBuilder.buildOmega(WLen, n1);
-        phi0 = new float[WLen];
-        psi = new float[WLen];
-        input = new CapacityQueue<Float>(WLen);
-        output = new CapacityQueue<Float>(WLen);
+        w1 = WindowBuilder.buildHanning(WIN_LEN, true);
+        omega = WindowBuilder.buildOmega(WIN_LEN, n1);
+        phi0 = new float[WIN_LEN];
+        psi = new float[WIN_LEN];
+        input = new CapacityQueue<Float>(WIN_LEN);
+        output = new CapacityQueue<Float>(WIN_LEN);
         for (int i = 0; i < output.getCapacity(); i++) {
             output.offer(0f);
         }
@@ -42,7 +42,7 @@ public class TimeStretchOperator extends DSPOperator {
     @Override
     protected float[] process () throws InterruptedException {
 
-        if (inputBuffer.size() < WLen) { return new float[0]; }
+        if (inputBuffer.size() < WIN_LEN) { return new float[0]; }
 
         int grainN2 = n2;
         float grainStretchFactor = (float) grainN2 / (float) n1;
@@ -55,7 +55,7 @@ public class TimeStretchOperator extends DSPOperator {
         LinkedList<Float> finishedBytes = overlapAddAndSlide(grainN2, grain);
 
         float[] finalOutput = new float[finishedBytes.size()];
-        float overlapScaling = (float) WLen / ((float) grainN2 * 2.0f);
+        float overlapScaling = (float) WIN_LEN / ((float) grainN2 * 2.0f);
         for (int i = 0; i < finalOutput.length; i++) {
             finalOutput[i] = finishedBytes.poll() / overlapScaling;
         }
@@ -87,7 +87,7 @@ public class TimeStretchOperator extends DSPOperator {
         float[] r = findMag(doubleGrain);
         float[] phi = findAngle(doubleGrain);
 
-        float[] delta_phi = new float[WLen];
+        float[] delta_phi = new float[WIN_LEN];
         for (int i = 0; i < delta_phi.length; i++) {
             float diff = phi[i] - phi0[i] - omega[i];
             delta_phi[i] = omega[i] + princarg(diff);
@@ -134,8 +134,8 @@ public class TimeStretchOperator extends DSPOperator {
         }
         Float[] inBytes = input.toArray(new Float[0]);
 
-        float[] grain = new float[WLen];
-        for (int i = 0; i < WLen; i++) {
+        float[] grain = new float[WIN_LEN];
+        for (int i = 0; i < WIN_LEN; i++) {
             grain[i] = inBytes[i] * w1[i];
         }
         return grain;

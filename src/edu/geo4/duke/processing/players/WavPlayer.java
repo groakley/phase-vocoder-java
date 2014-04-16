@@ -18,8 +18,9 @@ import edu.geo4.duke.processing.operators.ICallee;
 
 public class WavPlayer extends Thread implements ICaller {
 
-    File myInput;
-    ICallee myOperator;
+//    private File myInput;
+    private AudioInputStream myAudioInputStream;
+    private ICallee myOperator;
     private Vector<BlockingQueue<Byte>> outChannels;
     private Vector<ICallee> myChannelOperators;
     private int sampleSizeInBytes;
@@ -29,20 +30,28 @@ public class WavPlayer extends Thread implements ICaller {
     }
 
     public WavPlayer (File file, ICallee operator) {
-        myInput = file;
-        myOperator = operator;
-        outChannels = new Vector<BlockingQueue<Byte>>();
-        myChannelOperators = new Vector<ICallee>();
+      try {
+        AudioInputStream ais = AudioSystem.getAudioInputStream(file);
+        WavPlayer(ais, operator);
+      } catch (UnsupportedAudioFileException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    
+    public WavPlayer (AudioInputStream ais, ICallee operator) {
+      myOperator = operator;
+      outChannels = new Vector<BlockingQueue<Byte>>();
+      myChannelOperators = new Vector<ICallee>();
     }
 
     @Override
     public void start () {
-        AudioInputStream audioInputStream;
         SourceDataLine sourceDataLine = null;
 
         try {
-            audioInputStream = AudioSystem.getAudioInputStream(myInput);
-            AudioFormat inputFormat = audioInputStream.getFormat();
+            AudioFormat inputFormat = myAudioInputStream.getFormat();
             sampleSizeInBytes = inputFormat.getSampleSizeInBits() / Byte.SIZE;
             int bytesPerFrame = inputFormat.getFrameSize();
             if (bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
@@ -67,11 +76,11 @@ public class WavPlayer extends Thread implements ICaller {
 
             for (int i = 0; i < inputFormat.getChannels(); i++) {
                 ICallee op;
-                if (i > 0) {
-                    op = myOperator.getNewInstance();
+                if (i == 0) {
+                    op = myOperator;
                 }
                 else {
-                    op = myOperator;
+                    op = myOperator.getNewInstance();
                 }
                 myChannelOperators.add(op);
                 new Thread(op).start();
@@ -82,7 +91,7 @@ public class WavPlayer extends Thread implements ICaller {
             int readResult = 0;
             while (readResult != -1) {
                 if (readThisIteration) {
-                    readResult = audioInputStream.read(audioBytes);
+                    readResult = myAudioInputStream.read(audioBytes);
                     ArrayList<byte[]> channels = new ArrayList<byte[]>();
                     for (int i = 0; i < inputFormat.getChannels(); i++) {
                         channels.add(extractChannel(audioBytes, inputFormat.getSampleSizeInBits(),
