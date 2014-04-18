@@ -16,7 +16,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import edu.geo4.duke.processing.operators.ICallee;
 
 
-public class WavPlayer extends Thread implements ICaller {
+public class WavPlayer implements ICaller {
 
   private AudioInputStream myAudioInputStream;
   private ICallee myOperator;
@@ -48,7 +48,7 @@ public class WavPlayer extends Thread implements ICaller {
   }
 
   @Override
-  public void start() {
+  public void run() {
     SourceDataLine sourceDataLine = null;
 
     try {
