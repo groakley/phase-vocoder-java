@@ -1,8 +1,8 @@
-package edu.geo4.duke.processing.operators;
+package com.github.groakley.phasevocoder.processing.operators;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import edu.geo4.duke.processing.players.ICaller;
+import com.github.groakley.phasevocoder.processing.players.ICaller;
 
 
 public class DSPOperator implements ICallee {

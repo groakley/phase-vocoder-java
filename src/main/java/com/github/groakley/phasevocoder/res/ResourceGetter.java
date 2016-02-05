@@ -1,4 +1,4 @@
-package edu.geo4.duke.res;
+package com.github.groakley.phasevocoder.res;
 
 import java.net.URL;
 

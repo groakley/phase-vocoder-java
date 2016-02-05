@@ -1,4 +1,4 @@
-package edu.geo4.duke.processing.window;
+package com.github.groakley.phasevocoder.processing.window;
 
 public class WindowBuilder {
 

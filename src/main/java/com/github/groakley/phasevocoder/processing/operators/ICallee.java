@@ -1,6 +1,6 @@
-package edu.geo4.duke.processing.operators;
+package com.github.groakley.phasevocoder.processing.operators;
 
-import edu.geo4.duke.processing.players.ICaller;
+import com.github.groakley.phasevocoder.processing.players.ICaller;
 
 
 /**

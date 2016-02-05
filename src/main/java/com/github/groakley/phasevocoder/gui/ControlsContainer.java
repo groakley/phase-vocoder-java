@@ -1,4 +1,4 @@
-package edu.geo4.duke.gui;
+package com.github.groakley.phasevocoder.gui;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;

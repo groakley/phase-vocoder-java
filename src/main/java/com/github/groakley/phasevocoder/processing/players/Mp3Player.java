@@ -1,12 +1,12 @@
-package edu.geo4.duke.processing.players;
+package com.github.groakley.phasevocoder.processing.players;
 
 import java.io.File;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 
-import edu.geo4.duke.processing.operators.ICallee;
-import edu.geo4.duke.processing.operators.TimeStretchOperator;
+import com.github.groakley.phasevocoder.processing.operators.ICallee;
+import com.github.groakley.phasevocoder.processing.operators.TimeStretchOperator;
 
 public class Mp3Player implements ICaller {
 

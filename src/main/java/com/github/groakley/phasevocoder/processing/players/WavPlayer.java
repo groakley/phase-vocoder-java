@@ -1,4 +1,4 @@
-package edu.geo4.duke.processing.players;
+package com.github.groakley.phasevocoder.processing.players;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import edu.geo4.duke.processing.operators.ICallee;
+import com.github.groakley.phasevocoder.processing.operators.ICallee;
 
 
 public class WavPlayer implements ICaller {
