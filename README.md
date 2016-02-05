@@ -10,3 +10,5 @@ The long-term goal of this project is to build a high-performance, easily-used J
 ## Contributing
 
 This project is at a very early stage in development, but if it succeeds in getting off the ground, I'd be welcome some help expanding it.
+
+[![Build Status](https://travis-ci.org/axiopisty/phase-vocoder-java.svg?branch=travis-ci)](https://travis-ci.org/axiopisty/phase-vocoder-java)
