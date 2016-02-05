@@ -10,3 +10,17 @@ bin/*
 *.jar
 *.war
 *.ear
+
+##########################
+# IntelliJ Project Files #
+##########################
+.idea/
+*.iml
+*.ipr
+*.iws
+
+##########################
+# Maven files            #
+##########################
+target/
+dependency-reduced-pom.xml
