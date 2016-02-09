@@ -1,13 +1,13 @@
 package com.github.groakley.phasevocoder;
 
+import com.github.groakley.phasevocoder.gui.ApplicationFrame;
+import com.github.groakley.phasevocoder.processing.operators.TimeStretchOperator;
+import com.github.groakley.phasevocoder.processing.players.ICaller;
+import com.github.groakley.phasevocoder.processing.players.Mp3Player;
+import com.github.groakley.phasevocoder.processing.players.WavPlayer;
+
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import edu.geo4.duke.gui.ApplicationFrame;
-import edu.geo4.duke.processing.operators.TimeStretchOperator;
-import edu.geo4.duke.processing.players.ICaller;
-import edu.geo4.duke.processing.players.Mp3Player;
-import edu.geo4.duke.processing.players.WavPlayer;
-
 
 public class Main {
 

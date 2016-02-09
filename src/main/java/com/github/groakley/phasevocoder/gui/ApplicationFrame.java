@@ -1,7 +1,7 @@
-package edu.geo4.duke.gui;
+package com.github.groakley.phasevocoder.gui;
 
+import com.github.groakley.phasevocoder.processing.operators.TimeStretchOperator;
 import javax.swing.JFrame;
-import edu.geo4.duke.processing.operators.TimeStretchOperator;
 
 
 public class ApplicationFrame extends JFrame {

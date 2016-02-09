@@ -1,10 +1,10 @@
-package edu.geo4.duke.processing.operators;
+package com.github.groakley.phasevocoder.processing.operators;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import edu.emory.mathcs.jtransforms.fft.FloatFFT_1D;
-import edu.geo4.duke.processing.window.WindowBuilder;
-import edu.geo4.duke.util.CapacityQueue;
+import com.github.groakley.phasevocoder.processing.window.WindowBuilder;
+import com.github.groakley.phasevocoder.util.CapacityQueue;
 
 
 public class TimeStretchOperator extends DSPOperator {

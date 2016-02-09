@@ -1,12 +1,9 @@
-package edu.geo4.duke.test;
+package com.github.groakley.phasevocoder.util;
 
 import junit.framework.Assert;
 import org.junit.Test;
 
-import edu.geo4.duke.util.CapacityQueue;
-
-
-public class TestCapQueue {
+public class CapacityQueueTest {
 
   @Test
   public void testAdd() throws Exception {

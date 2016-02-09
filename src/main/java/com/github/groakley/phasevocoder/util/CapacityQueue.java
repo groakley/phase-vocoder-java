@@ -1,4 +1,4 @@
-package edu.geo4.duke.util;
+package com.github.groakley.phasevocoder.util;
 
 import java.util.Collection;
 import java.util.LinkedList;
