@@ -20,19 +20,20 @@
 package com.github.groakley.phasevocoder.gui;
 
 import com.github.groakley.phasevocoder.processing.operators.TimeStretchOperator;
-import javax.swing.JFrame;
+
+import javax.swing.*;
 
 
-public class ApplicationFrame extends JFrame {
+public final class ApplicationFrame extends JFrame {
 
   private static final long serialVersionUID = 1L;
 
-  private TimeStretchOperator myOp;
+  private final TimeStretchOperator timeStretchOperator;
 
-  public ApplicationFrame(TimeStretchOperator tso) {
+  public ApplicationFrame(TimeStretchOperator timeStretchOperator) {
     super("Time Stretchhhhh");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    myOp = tso;
+    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    this.timeStretchOperator = timeStretchOperator;
     add(new ControlsContainer(this));
     pack();
     setResizable(false);
@@ -40,12 +41,12 @@ public class ApplicationFrame extends JFrame {
     setVisible(true);
   }
 
-  protected void updateStretchFactor(float stretchFactor) {
-    myOp.updateStretchFactor(stretchFactor);
+  void updateStretchFactor(float stretchFactor) {
+    timeStretchOperator.updateStretchFactor(stretchFactor);
   }
 
-  protected void updateLocked(boolean locked) {
-    myOp.updateLockPhase(locked);
+  void updateLocked(boolean locked) {
+    timeStretchOperator.updateLockPhase(locked);
   }
 
 }

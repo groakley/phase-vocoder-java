@@ -30,34 +30,44 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class ControlsContainer extends JPanel {
-
+final class ControlsContainer extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  private JSlider mySpeedControl;
-
-  public ControlsContainer(final ApplicationFrame frame) {
+  ControlsContainer(final ApplicationFrame frame) {
     super();
 
+    JSlider timeStretchSlider = createTimeStretchSlider(frame);
+    JCheckBox phaseLockCheckbox = createPhaseLockCheckbox(frame);
+
+    add(timeStretchSlider);
+    // Add a horizontal spacer. At this point I think I'll pass on actually learning Swing.
+    add(new JLabel("      "));
+    add(phaseLockCheckbox);
+
+    setVisible(true);
+  }
+
+  private JSlider createTimeStretchSlider(final ApplicationFrame frame) {
     final int SLIDER_MIN = -50;
     final int SLIDER_MAX = 50;
-    mySpeedControl = new JSlider(SwingConstants.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, 0);
-    mySpeedControl.addChangeListener(new ChangeListener() {
+
+    JSlider speedControlSlider = new JSlider(SwingConstants.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, 0);
+    speedControlSlider.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
-        float stretchFactor = ((float) -mySpeedControl.getValue() / 100f) + 1f;
+        float stretchFactor = ((float) -speedControlSlider.getValue() / 100f) + 1f;
         frame.updateStretchFactor(stretchFactor);
       }
     });
-    Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-    labelTable.put(new Integer(SLIDER_MIN), new JLabel("Slower"));
-    labelTable.put(new Integer(SLIDER_MAX), new JLabel("Faster"));
-    mySpeedControl.setLabelTable(labelTable);
-    mySpeedControl.setPaintLabels(true);
-    add(mySpeedControl);
+    Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
+    labelTable.put(SLIDER_MIN, new JLabel("Slower"));
+    labelTable.put(SLIDER_MAX, new JLabel("Faster"));
+    speedControlSlider.setLabelTable(labelTable);
+    speedControlSlider.setPaintLabels(true);
+    return speedControlSlider;
+  }
 
-    add(new JLabel("      "));
-
+  private JCheckBox createPhaseLockCheckbox(final ApplicationFrame frame) {
     final JCheckBox mySetLock = new JCheckBox("Lock Phase");
     mySetLock.addItemListener(new ItemListener() {
       @Override
@@ -65,8 +75,6 @@ public class ControlsContainer extends JPanel {
         frame.updateLocked(mySetLock.isSelected());
       }
     });
-    add(mySetLock);
-    setVisible(true);
+    return mySetLock;
   }
-
 }
